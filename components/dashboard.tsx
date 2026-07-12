@@ -37,7 +37,7 @@ export function Dashboard({
   const [search, setSearch] = useState("")
   const [statusFilter, setStatusFilter] = useState<ProjectStatus | "todos">("todos")
   const [responsableFilter, setResponsableFilter] = useState<string>("todos")
-  const [showArchived, setShowArchived] = useState(false)
+  const [archiveFilter, setArchiveFilter] = useState<"activos" | "archivados" | "todos">("activos")
 
   const [detailProject, setDetailProject] = useState<Project | null>(null)
   const [formOpen, setFormOpen] = useState(false)
@@ -62,7 +62,8 @@ export function Dashboard({
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase()
     const list = projects.filter((p) => {
-      if (p.archived !== showArchived) return false
+      if (archiveFilter === "activos" && p.archived) return false
+      if (archiveFilter === "archivados" && !p.archived) return false
       if (statusFilter !== "todos" && p.status !== statusFilter) return false
       if (responsableFilter !== "todos" && !p.responsables.includes(responsableFilter)) return false
       if (q && !p.name.toLowerCase().includes(q) && !p.notas.toLowerCase().includes(q)) return false
@@ -99,7 +100,7 @@ export function Dashboard({
       }
       return cmp * dir
     })
-  }, [projects, search, statusFilter, responsableFilter, showArchived, sortKey, sortDir])
+  }, [projects, search, statusFilter, responsableFilter, archiveFilter, sortKey, sortDir])
 
   const formatDate = (iso: string) =>
     new Date(iso).toLocaleDateString("es-AR", {
@@ -236,13 +237,16 @@ export function Dashboard({
                     ))}
                   </select>
 
-                  <Button
-                    variant={showArchived ? "secondary" : "outline"}
-                    onClick={() => setShowArchived((v) => !v)}
+                  <select
+                    value={archiveFilter}
+                    onChange={(e) => setArchiveFilter(e.target.value as "activos" | "archivados" | "todos")}
+                    aria-label="Filtrar por estado de archivo"
+                    className="h-9 rounded-lg border border-input bg-background px-3 text-sm text-foreground outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/40"
                   >
-                    <Archive />
-                    {showArchived ? "Viendo archivados" : "Ver archivados"}
-                  </Button>
+                    <option value="activos">Activos</option>
+                    <option value="archivados">Archivados</option>
+                    <option value="todos">Todos</option>
+                  </select>
 
                   {isAdmin ? (
                     <Button
@@ -259,7 +263,7 @@ export function Dashboard({
               </div>
               <p className="text-xs text-muted-foreground">
                 {filtered.length} {filtered.length === 1 ? "proyecto" : "proyectos"}
-                {showArchived ? " archivados" : " activos"}
+                {archiveFilter === "archivados" ? " archivados" : archiveFilter === "todos" ? "" : " activos"}
               </p>
             </div>
 
