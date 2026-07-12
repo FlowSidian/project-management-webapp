@@ -254,8 +254,99 @@ export function Dashboard({
               </p>
             </div>
 
-            {/* Table */}
-            <div className="overflow-hidden rounded-xl border border-border bg-card">
+            {/* Sort bar (mobile) */}
+            <div className="mb-3 flex items-center gap-2 lg:hidden">
+              <span className="text-xs text-muted-foreground">Ordenar:</span>
+              <select
+                value={sortKey ?? ""}
+                onChange={(e) => {
+                  const v = e.target.value as SortKey | ""
+                  if (v) { setSortKey(v); if (!sortKey) setSortDir("asc") } else { setSortKey(null) }
+                }}
+                className="h-8 rounded-lg border border-input bg-background px-2 text-xs text-foreground outline-none"
+              >
+                <option value="">Sin orden</option>
+                <option value="name">Proyecto</option>
+                <option value="status">Estado</option>
+                <option value="responsables">Responsables</option>
+                <option value="updatedAt">Fecha</option>
+                <option value="notas">Notas</option>
+                <option value="enlaces">Enlaces</option>
+              </select>
+              {sortKey ? (
+                <button
+                  onClick={() => setSortDir((d) => (d === "asc" ? "desc" : "asc"))}
+                  className="flex size-8 items-center justify-center rounded-lg border border-input bg-background text-foreground"
+                >
+                  {sortDir === "asc" ? <ArrowUp className="size-3.5" /> : <ArrowDown className="size-3.5" />}
+                </button>
+              ) : null}
+            </div>
+
+            {/* Mobile cards */}
+            <div className="flex flex-col gap-3 lg:hidden">
+              {filtered.length === 0 ? (
+                <p className="py-12 text-center text-sm text-muted-foreground">
+                  No se encontraron proyectos con los filtros aplicados.
+                </p>
+              ) : (
+                filtered.map((p) => (
+                  <div
+                    key={p.id}
+                    className="rounded-xl border border-border bg-card p-4"
+                  >
+                    <div className="mb-2 flex items-start justify-between gap-2">
+                      <button
+                        onClick={() => setDetailProject(p)}
+                        className="text-left text-sm font-semibold text-foreground hover:text-primary hover:underline"
+                      >
+                        {p.name}
+                      </button>
+                      <StatusBadge status={p.status} />
+                    </div>
+                    <div className="mb-2 flex flex-wrap gap-1">
+                      {p.responsables.map((r) => (
+                        <span key={r} className="rounded-md bg-secondary px-1.5 py-0.5 text-xs text-secondary-foreground">
+                          {r}
+                        </span>
+                      ))}
+                    </div>
+                    {p.notas ? (
+                      <p className="mb-2 text-xs text-muted-foreground line-clamp-2">{p.notas}</p>
+                    ) : null}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                        <span>{formatDate(p.updatedAt)}</span>
+                        {p.attachments.length > 0 ? (
+                          <span className="inline-flex items-center gap-1">
+                            <Link2 className="size-3" />
+                            {p.attachments.length}
+                          </span>
+                        ) : null}
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Button variant="ghost" size="icon-sm" onClick={() => setDetailProject(p)} aria-label={`Ver ${p.name}`}>
+                          <Eye />
+                        </Button>
+                        {isAdmin ? (
+                          <>
+                            <Button variant="ghost" size="icon-sm" onClick={() => { setEditProject(p); setFormOpen(true) }} aria-label={`Editar ${p.name}`}>
+                              <Pencil />
+                            </Button>
+                            <Button variant="ghost" size="icon-sm" onClick={() => setArchived(p.id, !p.archived)} aria-label={p.archived ? `Restaurar ${p.name}` : `Archivar ${p.name}`}>
+                              {p.archived ? <ArchiveRestore /> : <Archive />}
+                            </Button>
+                          </>
+                        ) : null}
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* Desktop table */}
+            <div className="hidden lg:block overflow-hidden rounded-xl border border-border bg-card">
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[880px] border-collapse text-sm">
                   <thead>

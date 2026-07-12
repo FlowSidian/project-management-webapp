@@ -96,21 +96,18 @@ function HorizontalBarChart({ data }: { data: { label: string; value: number }[]
   if (data.length === 0) return <p className="py-8 text-center text-sm text-muted-foreground">Sin datos</p>
 
   return (
-    <div className="flex flex-col gap-2.5">
+    <div className="flex flex-col gap-3">
       {data.map((d) => (
-        <div key={d.label} className="flex items-center gap-3">
-          <span className="w-28 shrink-0 truncate text-right text-sm text-foreground" title={d.label}>
-            {d.label}
-          </span>
-          <div className="h-7 flex-1 overflow-hidden rounded-md bg-muted">
+        <div key={d.label} className="flex flex-col gap-1">
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-foreground">{d.label}</span>
+            <span className="text-xs font-semibold text-foreground">{d.value}</span>
+          </div>
+          <div className="h-5 overflow-hidden rounded-md bg-muted">
             <div
-              className="flex h-full items-center rounded-md bg-primary/20"
+              className="h-full rounded-md bg-primary/20"
               style={{ width: `${(d.value / max) * 100}%` }}
-            >
-              <span className="px-2 text-xs font-semibold text-foreground">
-                {d.value}
-              </span>
-            </div>
+            />
           </div>
         </div>
       ))}
