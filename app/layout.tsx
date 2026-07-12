@@ -10,7 +10,12 @@ export const metadata: Metadata = {
   title: 'Gestión de Proyectos | Dirección de Innovación y Tecnología',
   description:
     'Aplicación de gestión y seguimiento de proyectos de la Dirección de Innovación y Tecnología.',
-  generator: 'v0.app',
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'Proyectos DITI',
+  },
 }
 
 export const viewport: Viewport = {
