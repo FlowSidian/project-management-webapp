@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react"
 import {
   LogOut, Plus, Search, Link2, Archive, ArchiveRestore, Pencil, Eye,
-  BarChart3, LayoutList, Settings,
+  BarChart3, LayoutList, Settings, ArrowUp, ArrowDown, ArrowUpDown,
 } from "lucide-react"
 import type { Project, ProjectStatus, Role, Responsable } from "@/lib/types"
 import { PROJECT_STATUSES } from "@/lib/types"
@@ -18,6 +18,8 @@ import { ResponsablesManager } from "@/components/responsables-manager"
 import { MetricsDashboard } from "@/components/metrics-dashboard"
 
 type View = "projects" | "metrics"
+type SortKey = "name" | "status" | "responsables" | "updatedAt" | "notas" | "enlaces"
+type SortDir = "asc" | "desc"
 
 export function Dashboard({
   projects,
@@ -40,6 +42,17 @@ export function Dashboard({
   const [formOpen, setFormOpen] = useState(false)
   const [editProject, setEditProject] = useState<Project | null>(null)
   const [respManagerOpen, setRespManagerOpen] = useState(false)
+  const [sortKey, setSortKey] = useState<SortKey | null>(null)
+  const [sortDir, setSortDir] = useState<SortDir>("asc")
+
+  const toggleSort = (key: SortKey) => {
+    if (sortKey === key) {
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"))
+    } else {
+      setSortKey(key)
+      setSortDir("asc")
+    }
+  }
 
   const allResponsables = useMemo(() => {
     return responsables.map((r) => r.name).sort()
@@ -47,14 +60,42 @@ export function Dashboard({
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase()
-    return projects.filter((p) => {
+    const list = projects.filter((p) => {
       if (p.archived !== showArchived) return false
       if (statusFilter !== "todos" && p.status !== statusFilter) return false
       if (responsableFilter !== "todos" && !p.responsables.includes(responsableFilter)) return false
       if (q && !p.name.toLowerCase().includes(q) && !p.notas.toLowerCase().includes(q)) return false
       return true
     })
-  }, [projects, search, statusFilter, responsableFilter, showArchived])
+
+    if (!sortKey) return list
+
+    const dir = sortDir === "asc" ? 1 : -1
+    return [...list].sort((a, b) => {
+      let cmp = 0
+      switch (sortKey) {
+        case "name":
+          cmp = a.name.localeCompare(b.name, "es")
+          break
+        case "status":
+          cmp = a.status.localeCompare(b.status, "es")
+          break
+        case "responsables":
+          cmp = (a.responsables[0] ?? "").localeCompare(b.responsables[0] ?? "", "es")
+          break
+        case "updatedAt":
+          cmp = new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime()
+          break
+        case "notas":
+          cmp = (a.notas || "").localeCompare(b.notas || "", "es")
+          break
+        case "enlaces":
+          cmp = a.attachments.length - b.attachments.length
+          break
+      }
+      return cmp * dir
+    })
+  }, [projects, search, statusFilter, responsableFilter, showArchived, sortKey, sortDir])
 
   const formatDate = (iso: string) =>
     new Date(iso).toLocaleDateString("es-ES", {
@@ -219,12 +260,28 @@ export function Dashboard({
                 <table className="w-full min-w-[880px] border-collapse text-sm">
                   <thead>
                     <tr className="border-b border-border bg-muted/50 text-left">
-                      <th className="px-4 py-3 font-medium text-muted-foreground">Proyecto</th>
-                      <th className="px-4 py-3 font-medium text-muted-foreground">Estado</th>
-                      <th className="px-4 py-3 font-medium text-muted-foreground">Responsables</th>
-                      <th className="px-4 py-3 font-medium text-muted-foreground">Última actualización</th>
-                      <th className="px-4 py-3 font-medium text-muted-foreground">Notas</th>
-                      <th className="px-4 py-3 text-center font-medium text-muted-foreground">Enlaces</th>
+                      {([
+                        ["name", "Proyecto", ""],
+                        ["status", "Estado", ""],
+                        ["responsables", "Responsables", ""],
+                        ["updatedAt", "Última actualización", ""],
+                        ["notas", "Notas", ""],
+                        ["enlaces", "Enlaces", "text-center"],
+                      ] as [SortKey, string, string][]).map(([key, label, extra]) => {
+                        const active = sortKey === key
+                        const Icon = active ? (sortDir === "asc" ? ArrowUp : ArrowDown) : ArrowUpDown
+                        return (
+                          <th key={key} className={`px-4 py-3 font-medium text-muted-foreground ${extra}`}>
+                            <button
+                              onClick={() => toggleSort(key)}
+                              className="inline-flex items-center gap-1 hover:text-foreground transition-colors"
+                            >
+                              {label}
+                              <Icon className={`size-3 ${active ? "text-foreground" : "text-muted-foreground/50"}`} />
+                            </button>
+                          </th>
+                        )
+                      })}
                       <th className="px-4 py-3 text-right font-medium text-muted-foreground">Acciones</th>
                     </tr>
                   </thead>
