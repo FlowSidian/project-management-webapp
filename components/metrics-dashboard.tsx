@@ -1,9 +1,10 @@
 "use client"
 
 import { useMemo } from "react"
-import { BarChart3, CheckCircle2, Clock, FolderOpen, TrendingUp } from "lucide-react"
+import { AlertTriangle, BarChart3, CalendarClock, CheckCircle2, Clock, FolderOpen, TrendingUp } from "lucide-react"
 import type { Project } from "@/lib/types"
 import { StatusBadge } from "@/components/status-badge"
+import { DeadlineBadge } from "@/components/deadline-badge"
 
 const STATUS_COLORS: Record<string, string> = {
   Completado: "oklch(0.55 0.12 150)",
@@ -214,17 +215,33 @@ export function MetricsDashboard({ projects }: { projects: Project[] }) {
   const inProgressCount = active.filter((p) => p.status === "En curso").length
   const completionRate = active.length > 0 ? Math.round((completedCount / active.length) * 100) : 0
 
+  const deadlineStats = useMemo(() => {
+    const now = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Argentina/Buenos_Aires" }))
+    now.setHours(0, 0, 0, 0)
+    const withDeadline = active.filter((p) => p.deadline && p.status !== "Completado")
+    const overdue = withDeadline.filter((p) => new Date(p.deadline + "T00:00:00") < now)
+    const upcoming = withDeadline
+      .filter((p) => {
+        const target = new Date(p.deadline + "T00:00:00")
+        const diff = Math.ceil((target.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+        return diff >= 0 && diff <= 14
+      })
+      .sort((a, b) => a.deadline!.localeCompare(b.deadline!))
+    return { overdue: overdue.length, withDeadline: withDeadline.length, upcoming }
+  }, [active])
+
   const formatDate = (iso: string) =>
     new Date(iso).toLocaleDateString("es-AR", { day: "2-digit", month: "short", year: "numeric", timeZone: "America/Argentina/Buenos_Aires" })
 
   return (
     <div className="flex flex-col gap-6">
       {/* KPIs */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         <KpiCard icon={FolderOpen} label="Proyectos activos" value={active.length} />
         <KpiCard icon={Clock} label="En curso" value={inProgressCount} />
         <KpiCard icon={CheckCircle2} label="Completados" value={completedCount} />
         <KpiCard icon={TrendingUp} label="Tasa de finalización" value={`${completionRate}%`} sub={`${completedCount} de ${active.length}`} />
+        <KpiCard icon={AlertTriangle} label="Vencidos" value={deadlineStats.overdue} sub={`de ${deadlineStats.withDeadline} con fecha límite`} />
       </div>
 
       {/* Charts row */}
@@ -253,6 +270,40 @@ export function MetricsDashboard({ projects }: { projects: Project[] }) {
           Proyectos creados por mes
         </h3>
         <MonthlyTrendChart data={trendData} />
+      </div>
+
+      {/* Upcoming deadlines */}
+      <div className="rounded-xl border border-border bg-card p-5">
+        <h3 className="mb-4 flex items-center gap-2 text-sm font-semibold text-foreground">
+          <CalendarClock className="size-4 text-muted-foreground" />
+          Próximos vencimientos (14 días)
+        </h3>
+        {deadlineStats.upcoming.length === 0 ? (
+          <p className="text-sm text-muted-foreground">No hay proyectos con vencimiento próximo.</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border text-left">
+                  <th className="pb-2 pr-4 font-medium text-muted-foreground">Proyecto</th>
+                  <th className="pb-2 pr-4 font-medium text-muted-foreground">Estado</th>
+                  <th className="pb-2 pr-4 font-medium text-muted-foreground">Responsables</th>
+                  <th className="pb-2 font-medium text-muted-foreground">Fecha límite</th>
+                </tr>
+              </thead>
+              <tbody>
+                {deadlineStats.upcoming.map((p) => (
+                  <tr key={p.id} className="border-b border-border last:border-0">
+                    <td className="py-2 pr-4 font-medium text-foreground">{p.name}</td>
+                    <td className="py-2 pr-4"><StatusBadge status={p.status} /></td>
+                    <td className="py-2 pr-4 text-muted-foreground">{p.responsables.join(", ") || "—"}</td>
+                    <td className="py-2"><DeadlineBadge deadline={p.deadline} status={p.status} /></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       {/* Recently updated */}
