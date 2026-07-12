@@ -136,12 +136,12 @@ export function Dashboard({
               <p className="text-xs text-muted-foreground">Dirección de Innovación y Tecnología</p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
             {/* View toggle */}
             <div className="flex rounded-lg border border-border bg-muted p-0.5">
               <button
                 onClick={() => setView("projects")}
-                className={`flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
+                className={`flex flex-1 items-center justify-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors sm:flex-none sm:py-1 ${
                   view === "projects" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
                 }`}
               >
@@ -150,7 +150,7 @@ export function Dashboard({
               </button>
               <button
                 onClick={() => setView("metrics")}
-                className={`flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
+                className={`flex flex-1 items-center justify-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors sm:flex-none sm:py-1 ${
                   view === "metrics" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
                 }`}
               >
@@ -159,22 +159,26 @@ export function Dashboard({
               </button>
             </div>
 
-            <span className="rounded-full border border-border bg-secondary px-2.5 py-1 text-xs font-medium text-secondary-foreground">
-              {isAdmin ? "Administrador" : "Visitante"}
-            </span>
+            <div className="flex items-center justify-between gap-2">
+              <span className="rounded-full border border-border bg-secondary px-2.5 py-1 text-xs font-medium text-secondary-foreground">
+                {isAdmin ? "Administrador" : "Visitante"}
+              </span>
 
-            {isAdmin ? (
-              <Button variant="outline" size="icon" onClick={() => setRespManagerOpen(true)} aria-label="Gestionar responsables">
-                <Settings />
-              </Button>
-            ) : null}
+              <div className="flex items-center gap-1">
+                {isAdmin ? (
+                  <Button variant="outline" size="icon" onClick={() => setRespManagerOpen(true)} aria-label="Gestionar responsables">
+                    <Settings />
+                  </Button>
+                ) : null}
 
-            <ThemeToggle />
-            <form action={logout}>
-              <Button variant="outline" size="icon" type="submit" aria-label="Cerrar sesión">
-                <LogOut />
-              </Button>
-            </form>
+                <ThemeToggle />
+                <form action={logout}>
+                  <Button variant="outline" size="icon" type="submit" aria-label="Cerrar sesión">
+                    <LogOut />
+                  </Button>
+                </form>
+              </div>
+            </div>
           </div>
         </div>
       </header>
