@@ -1,10 +1,12 @@
 import type { ProjectStatus } from "@/lib/types"
 
 function getDaysRemaining(deadline: string): number {
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
+  const nowInBue = new Date(
+    new Date().toLocaleString("en-US", { timeZone: "America/Argentina/Buenos_Aires" }),
+  )
+  nowInBue.setHours(0, 0, 0, 0)
   const target = new Date(deadline + "T00:00:00")
-  return Math.ceil((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+  return Math.ceil((target.getTime() - nowInBue.getTime()) / (1000 * 60 * 60 * 24))
 }
 
 export function DeadlineBadge({
@@ -18,7 +20,7 @@ export function DeadlineBadge({
   if (status === "Completado") {
     return (
       <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground line-through">
-        {new Date(deadline + "T00:00:00").toLocaleDateString("es-ES", { day: "2-digit", month: "short" })}
+        {new Date(deadline + "T00:00:00").toLocaleDateString("es-AR", { day: "2-digit", month: "short", timeZone: "America/Argentina/Buenos_Aires" })}
       </span>
     )
   }

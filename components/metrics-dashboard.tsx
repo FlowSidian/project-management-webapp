@@ -199,7 +199,7 @@ export function MetricsDashboard({ projects }: { projects: Project[] }) {
       .slice(-12)
       .map(([month, count]) => {
         const [y, m] = month.split("-")
-        const label = new Date(Number(y), Number(m) - 1).toLocaleDateString("es-ES", { month: "short", year: "2-digit" })
+        const label = new Date(Number(y), Number(m) - 1).toLocaleDateString("es-AR", { month: "short", year: "2-digit", timeZone: "America/Argentina/Buenos_Aires" })
         return { month: label, count }
       })
   }, [projects])
@@ -215,7 +215,7 @@ export function MetricsDashboard({ projects }: { projects: Project[] }) {
   const completionRate = active.length > 0 ? Math.round((completedCount / active.length) * 100) : 0
 
   const formatDate = (iso: string) =>
-    new Date(iso).toLocaleDateString("es-ES", { day: "2-digit", month: "short", year: "numeric" })
+    new Date(iso).toLocaleDateString("es-AR", { day: "2-digit", month: "short", year: "numeric", timeZone: "America/Argentina/Buenos_Aires" })
 
   return (
     <div className="flex flex-col gap-6">

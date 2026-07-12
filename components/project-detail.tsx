@@ -35,12 +35,13 @@ export function ProjectDetail({
   }, [tab, project.id])
 
   const formatDate = (iso: string) =>
-    new Date(iso).toLocaleDateString("es-ES", {
+    new Date(iso).toLocaleDateString("es-AR", {
       day: "2-digit",
       month: "short",
       year: "numeric",
       hour: "2-digit",
       minute: "2-digit",
+      timeZone: "America/Argentina/Buenos_Aires",
     })
 
   const handleAddAttachment = (formData: FormData) => {
